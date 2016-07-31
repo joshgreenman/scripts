@@ -1,0 +1,102 @@
+"set nocp
+"set ls=2
+"set tabstop=2
+"set shiftwidth=2
+"set expandtab
+"set ruler
+"set number
+"set ignorecase
+"set modeline
+"set autoindent
+"set smartindent
+"set cindent
+"set nobackup
+"set wrap
+"set hidden
+"set backspace=ident,eol,start
+syntax on
+filetype plugin on
+
+set cindent
+set cino=:0,l1,g0,t0,i0,+2,c0,(0,w1,(s
+set modeline
+set nocompatible
+set term=dtterm
+set wildignore+=*.o,*~,.lo,*.exe,*.bak "ignore object files
+set ttyfast
+set et
+set ai
+set cin
+set ru
+set bs=indent,eol,start
+set sw=2 "this is the level of autoindent, adjust to taste
+"set t_kb
+set ts=2
+set number
+set showmatch
+set title
+set ignorecase
+set sc
+set smartcase
+set background=dark
+set wildmode=longest,list
+nnoremap <F8> :setl noai nocin nosi inde=<CR>
+colorscheme delek
+syntax on
+
+fu! StrRpt(text,count)
+  let result = ""
+  if a:count <= 0
+    return result
+  endif
+  for i in range( a:count )
+    let result.=a:text
+  endfor
+  return result
+endfu!
+
+fu! <SID>AlignToColumn(...) range
+  if (len(a:000) > 2 || len(a:000) < 1)
+    echomsg "AlignToColumn must be called with 1 or 2 arguments."
+    echomsg "The first is a character, and the second is an optional column."
+    echomsg "If no column is specified, will used the furthest first-column"
+    echomsg "of the supplied character in the given range."
+    return
+  elseif (search(a:1 ,'n') == 0)
+    echomsg "Found no occurrences of the specified substring."
+    return
+  endif
+
+  let aligncol = 0
+  let alignchar = a:1
+  if (len(a:000) == 2)
+    let aligncol = a:2
+  else
+    for line in getline(a:firstline, a:lastline)
+      let temp = match(line, a:1) + 1
+      if (temp > aligncol)
+        let aligncol = temp
+      endif
+    endfor
+  endif
+
+  if (aligncol < 1)
+    echomsg "Cannot align to column " . aligncol
+    return
+  endif
+
+  :exe a:firstline . ',' . a:lastline . 's/' . alignchar . '/\=printf("%s%s",StrRpt(" ",' . ( aligncol - 1 ) . ' - stridx(getline("."),"' . alignchar . '")),"' . alignchar . '")/'
+endfu!
+
+:autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o<CR>
+com! -nargs=+ -range=% Align :<line1>,<line2>call <SID>AlignToColumn(<f-args>)
+
+" Use % for the whole document, or not for a Visual Line selection
+" " :%g/substrToStart/call AlignCursor('substrToStart',32)
+"
+" let @x = "  std::cout << __FILE__ << \":\" << __LINE__ << \":JOSHTRACE - \"
+" << std::endl;" . "\n"
+"
+" hi Search cterm=NONE ctermfg=black ctermbg=yellow
+"
+
